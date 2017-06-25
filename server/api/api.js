@@ -10,6 +10,4 @@ router.get('/test', function (req,res) {
   res.send(JSON.stringify({a: 1}));
 });
 
-db.saveUserInfo();
-
 module.exports = router;

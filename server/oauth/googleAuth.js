@@ -11,15 +11,14 @@ const oauth2Client = new OAuth2(
 router.get('/google/', function (req, res) {
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: 'https://mail.google.com/'
+    scope: ['https://mail.google.com/']
   });
-
   res.redirect(url);
 });
 
-router.get('/google/callback', function (req, res) {
+router.get('/google/callback/', function (req, res) {
+  const token = req.query.code;
 
-  console.log(res);
   res.send('success');
 });
 
