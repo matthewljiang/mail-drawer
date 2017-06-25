@@ -1,4 +1,5 @@
-var router = require('express').Router();
+require('../db/db.js');
+const router = require('express').Router();
 
 router.get('/test', function (req,res) {
   res.setHeader('Content-Type', 'application/json');
