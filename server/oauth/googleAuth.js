@@ -21,7 +21,9 @@ router.get('/google/', function (req, res) {
 router.get('/google/callback/', function (req, res) {
   oauth2Client.getToken(req.query.code, function (err, tokens) {
     if (!err) {
-      db.saveUserInfo(tokens.access_token, tokens.refresh_token);
+      db.putUserInfo(tokens.access_token, tokens.refresh_token, function() {
+        db.getUserInfo('matthewljiang');
+      });
       oauth2Client.setCredentials(tokens);
 
     }

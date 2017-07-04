@@ -3,14 +3,7 @@ AWS.config.update({region:'us-east-1'});
 const dynamodb =  new AWS.DynamoDB();
 const kms = new AWS.KMS();
 const docClient = new AWS.DynamoDB.DocumentClient();
-const db = {
-  saveUserInfo: saveUserInfo,
-  encryptValue: encryptValue,
-  decryptValue: decryptValue
-}
-const test = encryptValue('test');
-
-
+const db = {};
 
 function encryptValue(value) {
   return new Promise( (resolve,reject) => {
@@ -48,21 +41,52 @@ function decryptValue(value) {
   });
 }
 
-function saveUserInfo (access_token, refresh_token) {
+db.getUserInfo =  (username) => {
+  return new Promise( (resolve, reject) =>{
+    const params = {
+      TableName: 'maildrawer.users',
+      Key: {
+        'username': username
+      }
+    };
+    docClient.get(params, function (err, data) {
+      if (err) {
+        console.log(err, err.stack);
+      } else {
+        decryptValue(data.Item.encrypted_access).then((accessSuccess) => {
+          decryptValue(data.Item.encrypted_refresh).then((refreshSuccess) => {
+            const userObject = {
+              'username': username,
+              'access_token': accessSuccess.Plaintext.toString(),
+              'refresh_token': refreshSuccess.Plaintext.toString()
+            };
+            resolve(userObject);
+          }, (error) => {
+            reject(error);
+          });
+        }, (error) => {
+          reject(error);
+        });
+      }
+    });
+  });
+}
+
+db.putUserInfo = (access_token, refresh_token, successFunction) => {
   encryptValue(access_token).then(function (accessSuccess) {
     encryptValue(refresh_token).then(function (refreshSuccess) {
       const params = {
         TableName: 'maildrawer.users',
         Item:{'username': 'matthewljiang',
-        'encrypted_access': accessSuccess,
-        'encrypted_refresh': refreshSuccess
-      }
+          'encrypted_access': accessSuccess,
+          'encrypted_refresh': refreshSuccess
+        }
       };
       docClient.put(params, function(err, data) {
         if (err) {
           console.log(err, err.stack);
         } else {
-          console.log('Successfully added to table');
+          successFunction();
         }
       });
 
